@@ -1,0 +1,1570 @@
+---
+title: "Analisis Performa Bisnis Rental Film"
+subtitle: "Case Method 1 — Sistem Informasi Manajemen"
+author: "Christian Adev Kristanto (M0724024)"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    df_print: paged
+    code_folding: show
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ===================== BASE ===================== */
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 15.5px;
+  color: #1C1C1E;
+  background-color: #F5F4F0;
+  line-height: 1.8;
+}
+
+.main-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+/* ===================== TIPOGRAFI ===================== */
+h1.title {
+  font-family: 'Lora', serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1C1C1E;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.3px;
+}
+
+h3.subtitle {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 1rem;
+  color: #6E6E73;
+  font-weight: 400;
+  margin-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+h1, h2, h3 {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  color: #1C1C1E;
+  margin-top: 2.2rem;
+}
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.25rem; border-bottom: 1px solid #D1CFC8; padding-bottom: 0.4rem; }
+h3 { font-size: 1.05rem; font-family: 'Source Sans 3', sans-serif; font-weight: 600; color: #3A3A3C; }
+
+/* ===================== KOTAK INFO ===================== */
+.info-box {
+  background: #FFFBF0;
+  border-left: 3px solid #C8A84B;
+  border-radius: 0 6px 6px 0;
+  padding: 0.9rem 1.2rem;
+  margin: 1rem 0;
+  font-size: 14.5px;
+  color: #2C2A20;
+}
+.info-box strong { color: #8B6914; }
+
+/* ===================== KOTAK INTERPRETASI ===================== */
+.interpret-box {
+  background: #F0F5F1;
+  border-left: 3px solid #3A7D54;
+  border-radius: 0 6px 6px 0;
+  padding: 0.9rem 1.2rem;
+  margin: 1rem 0;
+  font-size: 14.5px;
+  color: #1A2E22;
+}
+.interpret-box strong { color: #2A5C3C; }
+
+/* ===================== KOTAK OUTPUT ===================== */
+.output-box {
+  background: #F8F7F4;
+  border: 1px solid #D8D5CC;
+  border-radius: 6px;
+  padding: 0.9rem 1.2rem;
+  margin: 0.8rem 0 1.2rem;
+  font-size: 14px;
+  color: #2C2C2E;
+}
+.output-box strong { color: #1C1C1E; }
+
+/* ===================== KOTAK PERSAMAAN ===================== */
+.eq-box {
+  background: #F4F2EE;
+  border-left: 3px solid #9B7B50;
+  border-radius: 0 6px 6px 0;
+  padding: 0.9rem 1.2rem;
+  margin: 1rem 0;
+  font-size: 14.5px;
+  color: #2C1E10;
+}
+
+/* ===================== KOTAK RINGKASAN ===================== */
+.summary-box {
+  background: #FFFFFF;
+  border: 1px solid #D8D5CC;
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 1rem 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ===================== STAT GRID ===================== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 1.25rem 0;
+}
+.stat-card {
+  background: #FFFFFF;
+  border: 1px solid #D8D5CC;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.stat-val {
+  font-family: 'Lora', serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #1C1C1E;
+}
+.stat-lab {
+  font-size: 11.5px;
+  color: #6E6E73;
+  margin-top: 3px;
+  letter-spacing: 0.3px;
+}
+
+/* ===================== BADGE ===================== */
+.badge {
+  display: inline-block;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 99px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.badge-easy   { background: #E8F0EC; color: #2A5C3C; }
+.badge-medium { background: #F0EDE8; color: #7A5A2A; }
+.badge-hard   { background: #F0EAEA; color: #7A2A2A; }
+
+/* ===================== KODE ===================== */
+pre, code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  border-radius: 5px;
+  background: #F2F0EB !important;
+}
+
+/* ===================== TOC ===================== */
+#TOC {
+  background: #FFFFFF;
+  border: 1px solid #D8D5CC;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 13px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ===================== TABEL ===================== */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13.5px;
+}
+th {
+  background: #2C2C2E;
+  color: #F5F4F0;
+  padding: 9px 13px;
+  text-align: left;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+td { padding: 7px 13px; border-bottom: 1px solid #E5E3DC; }
+tr:hover td { background: #F8F7F3; }
+
+/* ===================== DIVIDER ===================== */
+hr { border: none; border-top: 1px solid #D8D5CC; margin: 2.2rem 0; }
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  fig.width  = 8,
+  fig.height = 5,
+  dpi = 150
+)
+```
+
+```{r library, include=FALSE}
+library(DBI)
+library(RMySQL)
+library(tidyverse)
+library(ggplot2)
+library(scales)
+library(knitr)
+library(kableExtra)
+```
+
+```{r koneksi, include=FALSE}
+con <- dbConnect(
+  RMySQL::MySQL(),
+  user     = "root",
+  password = "SQL12345",
+  dbname   = "sakila",
+  host     = "localhost"
+)
+```
+
+---
+
+# Pendahuluan
+
+<div class="info-box">
+Database Sakila adalah database yang merepresentasikan sistem informasi bisnis rental film. Dataset ini memuat informasi pelanggan, film, transaksi rental, pembayaran, inventaris, dan lokasi geografis. Laporan ini menganalisis performa bisnis dari lima sudut pandang berbeda, mulai dari gambaran umum hingga pemodelan prediktif.
+</div>
+
+**Tujuan analisis:**
+
+1. Memahami distribusi dan karakteristik katalog film yang tersedia
+2. Mengidentifikasi pola temporal dalam aktivitas rental pelanggan
+3. Menganalisis kontribusi revenue dari berbagai wilayah geografis
+4. Membangun model segmentasi pelanggan 
+5. Membangun model prediksi revenue
+
+**Struktur laporan:** Laporan terdiri dari 5 analisis yang saling melengkapi membentuk gambaran komprehensif performa bisnis.
+
+---
+
+# Deskripsi Dataset
+
+<div class="info-box">
+Database Sakila terdiri dari 16 tabel yang saling berelasi. Laporan ini menggunakan <strong>8 tabel utama</strong> yang mencakup dimensi film, transaksi, pelanggan, dan geografi.
+</div>
+
+```{r cek-baris, echo=FALSE}
+tabel_utama <- c("film", "rental", "payment", "customer",
+                 "inventory", "category", "city", "country")
+baris_df <- data.frame(
+  Tabel = tabel_utama,
+  Jumlah_Baris = sapply(tabel_utama, function(t) {
+    dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", t))$n
+  })
+)
+```
+
+## Tabel `film`
+
+```{r desc-film, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("film_id", "title", "description", "release_year",
+              "language_id", "rental_duration", "rental_rate",
+              "length", "replacement_cost", "rating", "special_features"),
+    Tipe  = c("SMALLINT", "VARCHAR(255)", "TEXT", "YEAR",
+              "TINYINT", "TINYINT", "DECIMAL(4,2)",
+              "SMALLINT", "DECIMAL(5,2)", "ENUM", "SET"),
+    Keterangan = c(
+      "Primary key — ID unik setiap film",
+      "Judul film",
+      "Sinopsis singkat film",
+      "Tahun rilis film",
+      "ID bahasa film (FK ke tabel language)",
+      "Durasi maksimum peminjaman dalam hari",
+      "Biaya sewa per periode (USD)",
+      "Durasi film dalam menit",
+      "Biaya penggantian jika film hilang atau rusak (USD)",
+      "Rating usia: G, PG, PG-13, R, NC-17",
+      "Fitur tambahan: Trailers, Commentaries, dll"
+    )
+  ),
+  caption = paste("Tabel film —", baris_df$Jumlah_Baris[baris_df$Tabel=="film"], "baris")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+<div class="output-box">
+Tabel <code>film</code> menyimpan metadata lengkap setiap judul dalam katalog. Kolom <code>rental_rate</code> dan <code>replacement_cost</code> adalah dua komponen keuangan utama yang akan banyak digunakan dalam analisis revenue.
+</div>
+
+## Tabel `rental`
+
+```{r desc-rental, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("rental_id", "rental_date", "inventory_id",
+              "customer_id", "return_date", "staff_id", "last_update"),
+    Tipe  = c("INT", "DATETIME", "MEDIUMINT",
+              "SMALLINT", "DATETIME", "TINYINT", "TIMESTAMP"),
+    Keterangan = c(
+      "Primary key — ID unik setiap transaksi rental",
+      "Tanggal dan waktu film dipinjam",
+      "ID item inventaris yang dipinjam (FK ke tabel inventory)",
+      "ID pelanggan yang meminjam (FK ke tabel customer)",
+      "Tanggal dan waktu film dikembalikan (NULL jika belum dikembalikan)",
+      "ID staf yang memproses transaksi (FK ke tabel staff)",
+      "Waktu terakhir data diperbarui"
+    )
+  ),
+  caption = paste("Tabel rental —", baris_df$Jumlah_Baris[baris_df$Tabel=="rental"], "baris")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+<div class="output-box">
+Tabel ini adalah inti dari analisis temporal dan frekuensi. Kolom <code>rental_date</code> digunakan untuk membangun tren waktu, sedangkan <code>customer_id</code> menjadi penghubung ke data pelanggan untuk segmentasi RFM.
+</div>
+
+## Tabel `payment`
+
+```{r desc-payment, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("payment_id", "customer_id", "staff_id",
+              "rental_id", "amount", "payment_date"),
+    Tipe  = c("SMALLINT", "SMALLINT", "TINYINT",
+              "INT", "DECIMAL(5,2)", "DATETIME"),
+    Keterangan = c(
+      "Primary key — ID unik setiap transaksi pembayaran",
+      "ID pelanggan yang membayar (FK ke tabel customer)",
+      "ID staf yang menerima pembayaran (FK ke tabel staff)",
+      "ID rental yang dibayar (FK ke tabel rental)",
+      "Jumlah pembayaran dalam USD",
+      "Tanggal dan waktu pembayaran dilakukan"
+    )
+  ),
+  caption = paste("Tabel payment —", baris_df$Jumlah_Baris[baris_df$Tabel=="payment"], "baris")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+<div class="output-box">
+Kolom <code>amount</code> adalah sumber utama kalkulasi revenue di seluruh analisis. Hubungan antara <code>rental_id</code> dan <code>customer_id</code> memungkinkan agregasi pendapatan per pelanggan maupun per periode waktu.
+</div>
+
+## Tabel `customer`
+
+```{r desc-customer, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("customer_id", "store_id", "first_name", "last_name",
+              "email", "address_id", "active", "create_date", "last_update"),
+    Tipe  = c("SMALLINT", "TINYINT", "VARCHAR(45)", "VARCHAR(45)",
+              "VARCHAR(50)", "SMALLINT", "TINYINT", "DATETIME", "TIMESTAMP"),
+    Keterangan = c(
+      "Primary key — ID unik setiap pelanggan",
+      "ID toko tempat pelanggan terdaftar (FK ke tabel store)",
+      "Nama depan pelanggan",
+      "Nama belakang pelanggan",
+      "Alamat email pelanggan",
+      "ID alamat pelanggan (FK ke tabel address)",
+      "Status aktif: 1 = aktif, 0 = tidak aktif",
+      "Tanggal pelanggan pertama kali didaftarkan",
+      "Waktu terakhir data diperbarui"
+    )
+  ),
+  caption = paste("Tabel customer —", baris_df$Jumlah_Baris[baris_df$Tabel=="customer"], "baris")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+<div class="output-box">
+Tabel pelanggan menjadi titik temu antara data transaksi dan data geografis melalui kolom <code>address_id</code>. Kolom <code>active</code> berguna untuk membedakan pelanggan yang masih aktif dari yang sudah tidak bertransaksi.
+</div>
+
+## Tabel `inventory`, `category`, `city`, dan `country`
+
+```{r desc-inventory, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("inventory_id", "film_id", "store_id", "last_update"),
+    Tipe  = c("MEDIUMINT", "SMALLINT", "TINYINT", "TIMESTAMP"),
+    Keterangan = c(
+      "Primary key — ID unik setiap item stok fisik film",
+      "ID film yang dimiliki stok ini (FK ke tabel film)",
+      "ID toko penyimpan stok (FK ke tabel store)",
+      "Waktu terakhir data diperbarui"
+    )
+  ),
+  caption = paste("Tabel inventory —", baris_df$Jumlah_Baris[baris_df$Tabel=="inventory"],
+                  "baris. Setiap film dapat memiliki banyak salinan fisik.")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+```{r desc-category, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("category_id", "genre", "last_update"),
+    Tipe  = c("TINYINT", "CHAR(20)", "TIMESTAMP"),
+    Keterangan = c(
+      "Primary key — ID unik setiap kategori genre",
+      "Nama genre film (Action, Comedy, Drama, dll)",
+      "Waktu terakhir data diperbarui"
+    )
+  ),
+  caption = paste("Tabel category —", baris_df$Jumlah_Baris[baris_df$Tabel=="category"],
+                  "baris. Dihubungkan ke film melalui tabel film_category.")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+```{r desc-city, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("city_id", "city", "country_id", "last_update"),
+    Tipe  = c("SMALLINT", "VARCHAR(50)", "SMALLINT", "TIMESTAMP"),
+    Keterangan = c(
+      "Primary key — ID unik setiap kota",
+      "Nama kota",
+      "ID negara tempat kota berada (FK ke tabel country)",
+      "Waktu terakhir data diperbarui"
+    )
+  ),
+  caption = paste("Tabel city —", baris_df$Jumlah_Baris[baris_df$Tabel=="city"], "baris")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+```{r desc-country, echo=FALSE}
+kable(
+  data.frame(
+    Kolom = c("country_id", "country", "last_update"),
+    Tipe  = c("SMALLINT", "VARCHAR(50)", "TIMESTAMP"),
+    Keterangan = c(
+      "Primary key — ID unik setiap negara",
+      "Nama negara",
+      "Waktu terakhir data diperbarui"
+    )
+  ),
+  caption = paste("Tabel country —", baris_df$Jumlah_Baris[baris_df$Tabel=="country"], "baris")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13)
+```
+
+## Ringkasan Jumlah Baris
+
+```{r ringkasan-baris, echo=FALSE}
+kable(
+  baris_df,
+  col.names = c("Tabel", "Jumlah Baris"),
+  caption = "Jumlah baris per tabel yang digunakan dalam analisis"
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = FALSE, font_size = 13) %>%
+  column_spec(2, bold = TRUE, color = "#2C2C2E")
+```
+
+<div class="output-box">
+Tabel <code>rental</code> dan <code>payment</code> memiliki jumlah baris terbesar karena mencatat setiap transaksi secara individual. Rasio antara jumlah rental dan jumlah pelanggan memberikan gambaran awal rata-rata frekuensi peminjaman per pelanggan, yang akan dianalisis lebih mendalam pada Analisis 4.
+</div>
+
+---
+
+# Analisis 1 — Statistik Deskriptif dan Film Terpopuler
+
+## Deskripsi
+
+<div class="info-box">
+Analisis pertama yang dilakukan yaitu menelaah distribusi genre, rating usia, film yang paling banyak disewa, dan kontribusi revenue per kategori secara menyeluruh.
+</div>
+
+## Pengambilan Data
+
+```{r data-ana1}
+# Distribusi film per kategori
+film_kategori <- dbGetQuery(con, "
+  SELECT cat.genre AS kategori,
+    COUNT(fc.film_id) AS jumlah_film
+  FROM category cat
+  JOIN film_category fc ON cat.category_id = fc.category_id
+  GROUP BY cat.genre
+  ORDER BY jumlah_film DESC
+")
+
+# Top 10 film paling sering dirental
+top_film <- dbGetQuery(con, "
+  SELECT f.title AS judul,
+    cat.genre AS kategori,
+    COUNT(r.rental_id) AS total_rental
+  FROM film f
+  JOIN inventory i      ON f.film_id      = i.film_id
+  JOIN rental r         ON i.inventory_id = r.inventory_id
+  JOIN film_category fc ON f.film_id      = fc.film_id
+  JOIN category cat     ON fc.category_id = cat.category_id
+  GROUP BY f.title, cat.genre
+  ORDER BY total_rental DESC
+  LIMIT 10
+")
+
+# Revenue per kategori
+revenue_kategori <- dbGetQuery(con, "
+  SELECT cat.genre AS kategori,
+    COUNT(DISTINCT r.rental_id) AS total_rental,
+    ROUND(SUM(p.amount), 2)     AS total_revenue,
+    ROUND(AVG(p.amount), 2)     AS avg_payment
+  FROM category cat
+  JOIN film_category fc  ON cat.category_id   = fc.category_id
+  JOIN inventory inv     ON fc.film_id        = inv.film_id
+  JOIN rental r          ON inv.inventory_id  = r.inventory_id
+  JOIN payment p         ON r.rental_id       = p.rental_id
+  GROUP BY cat.genre
+  ORDER BY total_revenue DESC
+")
+
+# Distribusi rating
+rating_film <- dbGetQuery(con, "
+  SELECT rating,
+    COUNT(*) AS jumlah_film,
+    ROUND(AVG(rental_rate), 2)      AS avg_sewa,
+    ROUND(AVG(replacement_cost), 2) AS avg_ganti
+  FROM film
+  GROUP BY rating
+  ORDER BY jumlah_film DESC
+")
+```
+
+## Statistik Ringkasan
+
+```{r ringkasan-ana1}
+total_film    <- sum(film_kategori$jumlah_film)
+total_revenue <- sum(revenue_kategori$total_revenue)
+total_rental  <- sum(revenue_kategori$total_rental)
+top_kategori  <- film_kategori$kategori[1]
+```
+
+```{r stat-grid-ana1, echo=FALSE}
+data.frame(
+  Metrik = c("Total Film", "Kategori Genre", "Total Rental", "Total Revenue"),
+  Nilai  = c(
+    as.character(total_film),
+    "16",
+    comma(total_rental),
+    paste0("$", comma(total_revenue))
+  )
+) %>%
+  kable(col.names = c("Metrik", "Nilai"),
+        caption = "Ringkasan statistik utama Analisis 1") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE, font_size = 14) %>%
+  column_spec(1, bold = FALSE, width = "18em") %>%
+  column_spec(2, bold = TRUE, color = "#1C1C1E", width = "10em")
+```
+
+<div class="output-box">
+Keempat hasil ini merupakan gambaran makro dari seluruh operasional bisnis rental. Total film menunjukkan luas katalog, sedangkan rasio total rental terhadap total film mencerminkan seberapa aktif koleksi tersebut dimanfaatkan pelanggan. Total revenue menggambarkan nilai ekonomi yang dihasilkan dari seluruh aktivitas tersebut.
+</div>
+
+## Visualisasi
+
+### Distribusi Film per Kategori
+
+```{r viz1-kategori, fig.cap="Distribusi jumlah film berdasarkan kategori genre"}
+ggplot(film_kategori,
+    aes(x = reorder(kategori, jumlah_film), y = jumlah_film)) +
+  geom_col(fill = "#5C7A6A", width = 0.7) +
+  geom_text(aes(label = jumlah_film),
+            hjust = -0.2, size = 3.2, color = "#2A3E34") +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(title = "Distribusi jumlah film per kategori genre",
+       subtitle = "Database Sakila — 16 kategori tersedia",
+       x = NULL, y = "Jumlah film",
+       caption = "Sumber: tabel film_category dan category — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank())
+```
+
+<div class="output-box">
+Setiap batang mewakili satu genre dengan panjang batang sebanding jumlah judul film dalam kategori tersebut. Distribusi terlihat merata katalog tidak condong ke genre tertentu dan pilihan pelanggan beragam. Genre dengan batang terpanjang adalah kategori dengan koleksi terbanyak di katalog Sakila.
+</div>
+
+### Top 10 Film Terpopuler
+
+```{r viz1-topfilm, fig.cap="10 film dengan jumlah rental tertinggi"}
+ggplot(top_film,
+    aes(x = reorder(judul, total_rental), y = total_rental,
+        fill = kategori)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = total_rental),
+            hjust = -0.2, size = 3.2) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.18))) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Top 10 film paling sering dirental",
+       subtitle = "Berdasarkan total transaksi rental",
+       x = NULL, y = "Total rental", fill = "Kategori",
+       caption = "Sumber: tabel film, inventory, rental — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank(),
+        legend.position = "bottom")
+```
+
+<div class="output-box">
+Warna batang menunjukkan genre film. Film-film terpopuler berasal dari satu genre yang cukup tersebar merata ini menunjukkan tidak adanya genre yang mendominasi preferensi pelanggan. Film dengan jumlah rental tertinggi adalah kandidat utama untuk program promosi atau prioritas ketersediaan stok.
+</div>
+
+### Revenue per Kategori
+
+```{r viz1-revenue, fig.cap="Total revenue yang dihasilkan per kategori film"}
+ggplot(revenue_kategori,
+    aes(x = reorder(kategori, total_revenue), y = total_revenue)) +
+  geom_col(fill = "#7A6A4A", width = 0.7) +
+  geom_text(aes(label = paste0("$", format(total_revenue, big.mark=","))),
+            hjust = -0.1, size = 2.8, color = "#3A2A10") +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format(),
+                     expand = expansion(mult = c(0, 0.22))) +
+  labs(title = "Total revenue per kategori film",
+       subtitle = "Akumulasi seluruh periode transaksi",
+       x = NULL, y = "Total revenue (USD)",
+       caption = "Sumber: tabel category, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank())
+```
+
+<div class="output-box">
+Chart membandingkan urutan revenue dengan urutan jumlah film pada grafik pertama. Jika urutan berbeda, berarti ada genre yang menghasilkan revenue lebih tinggi bukan karena banyak judul, melainkan karena harga sewa lebih mahal atau lebih sering disewa per judul. Selisih kecil antargenre mengindikasikan penetapan harga yang relatif seragam.
+</div>
+
+### Distribusi Rating Usia Film
+
+```{r viz1-rating, fig.cap="Distribusi film berdasarkan rating usia dan rata-rata harga sewa"}
+ggplot(rating_film,
+    aes(x = reorder(rating, jumlah_film), y = jumlah_film)) +
+  geom_col(fill = "#8A6A5A", width = 0.65) +
+  geom_text(aes(label = paste0(jumlah_film, " film\n$", avg_sewa, "/sewa")),
+            hjust = -0.1, size = 2.9, color = "#3A2010", lineheight = 0.9) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.35))) +
+  labs(title = "Distribusi film berdasarkan rating usia",
+       subtitle = "Disertai rata-rata harga sewa per rating",
+       x = "Rating usia", y = "Jumlah film",
+       caption = "Sumber: tabel film — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank())
+```
+
+<div class="output-box">
+Label pada setiap batang menampilkan dua informasi sekaligus jumlah film dan rata-rata harga sewa per rating. Perbandingan ini membantu mengetahui apakah film dengan rating tertentu cenderung dikenakan harga lebih tinggi, yang dapat menjadi dasar kebijakan penetapan harga ke depan.
+</div>
+
+## Interpretasi
+
+<div class="interpret-box">
+Kesimpulan: Katalog film Sakila terdistribusi relatif merata di 16 genre tidak ada satu genre yang mendominasi secara ekstrem. Genre Sports dan Foreign memiliki jumlah film terbanyak, namun genre dengan revenue tertinggi belum tentu sama dengan yang memiliki film terbanyak. Ini menunjukkan bahwa <strong>popularitas tidak semata-mata ditentukan oleh kuantitas judul</strong>. Film-film terpopuler berdasarkan rental tersebar di berbagai genre, mengindikasikan selera pelanggan yang beragam. Dari sisi revenue, perbedaan antargenre tidak terlalu besar, menandakan strategi penetapan harga sewa yang relatif seragam di seluruh kategori.
+</div>
+
+---
+
+# Analisis 2 — Tren Rental per Waktu
+
+## Deskripsi
+
+<div class="info-box">
+Analisis kedua mengidentifikasi pola rental dan revenue pada periode Mei hingga Agustus 2005, hari dalam seminggu, serta pola musiman untuk mendukung keputusan operasional.
+</div>
+
+## Pengambilan Data
+
+```{r data-ana2}
+# Tren rental dan revenue per bulan
+tren_bulanan <- dbGetQuery(con, "
+  SELECT DATE_FORMAT(r.rental_date, '%Y-%m') AS bulan,
+    COUNT(DISTINCT r.rental_id)  AS jumlah_rental,
+    ROUND(SUM(p.amount), 2)      AS total_revenue
+  FROM rental r
+  JOIN payment p ON r.rental_id = p.rental_id
+  WHERE r.rental_date BETWEEN '2005-05-01' AND '2005-08-31'
+  GROUP BY bulan ORDER BY bulan
+") %>%
+  mutate(bulan_date = as.Date(paste0(bulan, "-01")))
+
+# Rental per hari dalam seminggu
+rental_hari <- dbGetQuery(con, "
+  SELECT DAYNAME(rental_date) AS hari,
+    DAYOFWEEK(rental_date)    AS urutan,
+    COUNT(*) AS jumlah_rental
+  FROM rental
+  GROUP BY hari, urutan
+  ORDER BY urutan
+") %>%
+  mutate(
+    hari = recode(hari,
+      "Sunday"    = "Minggu",
+      "Monday"    = "Senin",
+      "Tuesday"   = "Selasa",
+      "Wednesday" = "Rabu",
+      "Thursday"  = "Kamis",
+      "Friday"    = "Jumat",
+      "Saturday"  = "Sabtu"
+    ),
+    hari = factor(hari,
+      levels = c("Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"))
+  )
+
+# Pola musiman per bulan
+pola_musiman <- dbGetQuery(con, "
+  SELECT MONTH(rental_date) AS bulan_ke,
+    MONTHNAME(rental_date)  AS nama_bulan,
+    COUNT(*) AS jumlah_rental
+  FROM rental
+  GROUP BY bulan_ke, nama_bulan
+  ORDER BY bulan_ke
+") %>%
+  mutate(
+    nama_bulan = recode(nama_bulan,
+      "January"   = "Januari",  "February"  = "Februari",
+      "March"     = "Maret",    "April"     = "April",
+      "May"       = "Mei",      "June"      = "Juni",
+      "July"      = "Juli",     "August"    = "Agustus",
+      "September" = "September","October"   = "Oktober",
+      "November"  = "November", "December"  = "Desember"
+    ),
+    nama_bulan = factor(nama_bulan,
+      levels = c("Januari","Februari","Maret","April","Mei","Juni",
+                 "Juli","Agustus","September","Oktober","November","Desember"))
+  )
+```
+
+## Persamaan Matematis
+
+<div class="eq-box">
+<strong>Laju perubahan rental antar periode (Growth Rate):</strong>
+</div>
+
+$$
+GR_t = \frac{R_t - R_{t-1}}{R_{t-1}} \times 100\%
+$$
+
+dengan $R_t$ = jumlah rental pada bulan $t$ dan $R_{t-1}$ = jumlah rental bulan sebelumnya.
+
+$$
+\bar{R} = \frac{1}{n} \sum_{t=1}^{n} R_t \quad \text{(rata-rata rental bulanan)}
+$$
+
+## Kalkulasi Growth Rate
+
+```{r calc-growth}
+tren_bulanan <- tren_bulanan %>%
+  mutate(
+    growth_rate = round((jumlah_rental - lag(jumlah_rental)) /
+                          lag(jumlah_rental) * 100, 1),
+    label_bulan = format(bulan_date, "%b %Y")
+  )
+
+rata_rental <- mean(tren_bulanan$jumlah_rental)
+```
+
+```{r summary-ana2, echo=FALSE}
+data.frame(
+  Keterangan = c(
+    "Rata-rata rental per bulan (Mei–Agustus 2005)",
+    "Growth rate Mei → Jun",
+    "Growth rate Jun → Jul",
+    "Growth rate Jul → Agu"
+  ),
+  Nilai = c(
+    paste0(round(rata_rental, 0), " transaksi"),
+    paste0(tren_bulanan$growth_rate[2], "%"),
+    paste0(tren_bulanan$growth_rate[3], "%"),
+    paste0(tren_bulanan$growth_rate[4], "%")
+  )
+) %>%
+  kable(col.names = c("Keterangan", "Nilai"),
+        caption = "Ringkasan laju pertumbuhan rental Mei–Agustus 2005") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE, font_size = 14) %>%
+  column_spec(1, width = "28em") %>%
+  column_spec(2, bold = TRUE, color = "#1C1C1E", width = "10em")
+```
+
+## Visualisasi
+
+### Tren Rental dan Revenue Bulan Mei–Agustus 2005
+
+```{r viz2-tren, fig.cap="Tren jumlah rental bulanan Mei–Agustus 2005"}
+ggplot(tren_bulanan, aes(x = bulan_date, y = jumlah_rental)) +
+  geom_area(fill = "#8FA88A", alpha = 0.3) +
+  geom_line(color = "#3A5C40", linewidth = 1.2) +
+  geom_point(color = "#2A3C28", size = 2.5) +
+  geom_smooth(method = "loess", se = TRUE,
+              color = "#9B6A3A", linetype = "dashed",
+              linewidth = 0.8, alpha = 0.12, fill = "#D4A87A") +
+  scale_x_date(
+    breaks = seq(as.Date("2005-05-01"), as.Date("2005-08-01"), by = "month"),
+    labels = c("Mei 2005","Jun 2005","Jul 2005","Agu 2005")
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(title = "Tren jumlah rental per bulan — Mei hingga Agustus 2005",
+       subtitle = "Garis putus cokelat = tren LOESS | area hijau = volume",
+       x = NULL, y = "Jumlah rental",
+       caption = "Sumber: tabel rental dan payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.minor = element_blank())
+```
+
+<div class="output-box">
+Area hijau menunjukkan volume total rental tiap bulan. Garis putus cokelat adalah kurva tren LOESS yang menghaluskan fluktuasi. Lonjakan tajam di bulan tertentu bisa mengindikasikan kampanye promosi atau momen liburan yang mendorong permintaan secara signifikan.
+</div>
+
+```{r viz2-revenue, fig.cap="Tren total revenue Mei–Agustus 2005"}
+ggplot(tren_bulanan, aes(x = bulan_date, y = total_revenue)) +
+  geom_area(fill = "#9FE1CB", alpha = 0.5) +
+  geom_line(color = "#0F6E56", linewidth = 1.2) +
+  geom_point(color = "#085041", size = 2.2) +
+  scale_x_date(
+    breaks = seq(as.Date("2005-05-01"), as.Date("2005-08-01"), by = "month"),
+    labels = c("Mei 2005","Jun 2005","Jul 2005","Agu 2005")
+  ) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "Tren total revenue per bulan — Mei hingga Agustus 2005",
+       subtitle = "Akumulasi pembayaran seluruh pelanggan",
+       x = NULL, y = "Total revenue (USD)",
+       caption = "Sumber: tabel payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.minor = element_blank())
+```
+
+<div class="output-box">
+Grafik membandingkan pola revenue dengan pola jumlah rental di grafik sebelumnya. Jika keduanya bergerak seiring, ini menandakan harga sewa rata-rata stabil sepanjang periode. Jika tidak seiring, ada variasi pada nilai per transaksi pelanggan mungkin menyewa film dengan harga lebih mahal di bulan tertentu.
+</div>
+
+### Pola per Hari dan Pola Musiman
+
+```{r viz2-hari, fig.cap="Distribusi rental berdasarkan hari dalam seminggu"}
+ggplot(rental_hari,
+    aes(x = hari, y = jumlah_rental, fill = jumlah_rental)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = comma(jumlah_rental)),
+            vjust = -0.4, size = 3.2) +
+  scale_fill_gradient(low = "#C8BFA8", high = "#4A3A24") +
+  scale_y_continuous(labels = comma,
+                     expand = expansion(mult = c(0, 0.14))) +
+  labs(title = "Pola rental per hari dalam seminggu",
+       subtitle = "Hari mana transaksi paling banyak terjadi?",
+       x = NULL, y = "Jumlah rental",
+       caption = "Sumber: tabel rental — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.x = element_blank())
+```
+
+<div class="output-box">
+Warna batang yang lebih gelap menunjukkan volume rental lebih tinggi. Hari dengan rental tertinggi adalah hari paling sibuk secara operasional. Informasi ini langsung berguna untuk pengaturan jadwal staf dan pengelolaan stok memastikan lebih banyak salinan film tersedia pada hari-hari tersibuk.
+</div>
+
+```{r viz2-musiman, fig.cap="Pola musiman rental per bulan dalam setahun"}
+ggplot(pola_musiman,
+    aes(x = nama_bulan, y = jumlah_rental, fill = jumlah_rental)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = comma(jumlah_rental)),
+            vjust = -0.4, size = 3) +
+  scale_fill_gradient(low = "#D4C4A8", high = "#7A5A28") +
+  scale_y_continuous(labels = comma,
+                     expand = expansion(mult = c(0, 0.14))) +
+  labs(title = "Pola musiman rental — distribusi per bulan",
+       subtitle = "Akumulasi seluruh tahun dalam dataset",
+       x = NULL, y = "Jumlah rental",
+       caption = "Sumber: tabel rental — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(angle = 30, hjust = 1, size = 9))
+```
+
+<div class="output-box">
+Bulan dengan batang tertinggi adalah puncak musim rental. Pola ini krusial untuk perencanaan pengadaan stok baru. Bulan dengan aktivitas rendah dapat dijadikan momen kampanye diskon untuk mendorong permintaan pada periode sepi.
+</div>
+
+## Interpretasi
+
+<div class="interpret-box">
+Kesimpulan: Tren rental menunjukkan pola yang tidak konstan sepanjang periode terdapat bulan-bulan dengan lonjakan aktivitas yang signifikan. Pola mingguan mengindikasikan adanya hari-hari tertentu yang lebih ramai, yang dapat dimanfaatkan untuk strategi promosi di luar jam sibuk. Pola musiman menunjukkan bahwa <strong>volume rental tidak merata sepanjang tahun</strong>, sehingga manajemen inventaris dan pengaturan staf perlu mempertimbangkan fluktuasi ini. Laju pertumbuhan yang berfluktuasi mengindikasikan adanya faktor eksternal atau dampak kampanye promosi pada periode tertentu.
+</div>
+
+---
+
+# Analisis 3 — Revenue per Wilayah Geografis
+
+## Deskripsi
+
+<div class="info-box">
+Analisis ketiga berfokus dalam memetakan kontribusi pelanggan berdasarkan kota dan negara, serta menghitung rata-rata revenue per pelanggan antarwilayah.
+</div>
+
+## Pengambilan Data
+
+```{r data-ana3}
+# Top 10 negara berdasarkan revenue
+revenue_negara <- dbGetQuery(con, "
+  SELECT co.country,
+    COUNT(DISTINCT cu.customer_id)  AS jumlah_pelanggan,
+    COUNT(DISTINCT r.rental_id)     AS total_rental,
+    ROUND(SUM(p.amount), 2)         AS total_revenue,
+    ROUND(SUM(p.amount) /
+      COUNT(DISTINCT cu.customer_id), 2) AS avg_per_pelanggan
+  FROM country co
+  JOIN city ci     ON co.country_id  = ci.country_id
+  JOIN address a   ON ci.city_id     = a.city_id
+  JOIN customer cu ON a.address_id   = cu.address_id
+  JOIN payment p   ON cu.customer_id = p.customer_id
+  JOIN rental r    ON p.rental_id    = r.rental_id
+  GROUP BY co.country
+  ORDER BY total_revenue DESC
+  LIMIT 10
+")
+
+# Top 15 kota berdasarkan revenue
+revenue_kota <- dbGetQuery(con, "
+  SELECT ci.city,
+    co.country,
+    COUNT(DISTINCT cu.customer_id)  AS jumlah_pelanggan,
+    ROUND(SUM(p.amount), 2)         AS total_revenue,
+    ROUND(AVG(p.amount), 2)         AS avg_payment
+  FROM city ci
+  JOIN country co  ON ci.country_id = co.country_id
+  JOIN address a   ON ci.city_id    = a.city_id
+  JOIN customer cu ON a.address_id  = cu.address_id
+  JOIN payment p   ON cu.customer_id = p.customer_id
+  GROUP BY ci.city, co.country
+  ORDER BY total_revenue DESC
+  LIMIT 15
+")
+
+# Distribusi pelanggan per negara (semua)
+dist_negara <- dbGetQuery(con, "
+  SELECT co.country,
+    COUNT(DISTINCT cu.customer_id) AS jumlah_pelanggan
+  FROM country co
+  JOIN city ci     ON co.country_id = ci.country_id
+  JOIN address a   ON ci.city_id    = a.city_id
+  JOIN customer cu ON a.address_id  = cu.address_id
+  GROUP BY co.country
+  ORDER BY jumlah_pelanggan DESC
+  LIMIT 20
+")
+```
+
+## Persamaan Matematis
+
+<div class="eq-box">
+<strong>Revenue per pelanggan (Revenue Per Customer — RPC):</strong>
+</div>
+
+$$
+RPC_i = \frac{\sum_{j=1}^{n_i} p_{ij}}{C_i}
+$$
+
+dengan $p_{ij}$ = pembayaran ke-$j$ dari pelanggan di wilayah $i$, dan $C_i$ = jumlah pelanggan unik di wilayah $i$.
+
+$$
+\text{Kontribusi wilayah} = \frac{R_i}{\sum_{k} R_k} \times 100\%
+$$
+
+## Visualisasi
+
+### Top 10 Negara Berdasarkan Revenue
+
+```{r viz3-negara, fig.cap="Top 10 negara dengan revenue tertinggi"}
+ggplot(revenue_negara,
+    aes(x = reorder(country, total_revenue), y = total_revenue)) +
+  geom_col(fill = "#6A7A9A", width = 0.7) +
+  geom_text(aes(label = paste0("$", format(total_revenue, big.mark=","),
+                               "\n(", jumlah_pelanggan, " pelanggan)")),
+            hjust = -0.05, size = 2.7, color = "#2A3050", lineheight = 0.85) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format(),
+                     expand = expansion(mult = c(0, 0.4))) +
+  labs(title = "Top 10 negara berdasarkan total revenue",
+       subtitle = "Disertai jumlah pelanggan per negara",
+       x = NULL, y = "Total revenue (USD)",
+       caption = "Sumber: tabel country, customer, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank())
+```
+
+<div class="output-box">
+Label pada tiap batang menampilkan total revenue dan jumlah pelanggan. Negara dengan revenue tinggi tetapi pelanggan sedikit berarti memiliki RPC (revenue per customer) yang tinggi ini menandakan pelanggan di negara tersebut lebih aktif menyewa atau memilih film yang lebih mahal.
+</div>
+
+### Rata-rata Revenue per Pelanggan antarNegara
+
+```{r viz3-rpc, fig.cap="Rata-rata revenue per pelanggan di 10 negara teratas"}
+ggplot(revenue_negara,
+    aes(x = reorder(country, avg_per_pelanggan), y = avg_per_pelanggan)) +
+  geom_col(fill = "#9A7A5A", width = 0.7) +
+  geom_text(aes(label = paste0("$", avg_per_pelanggan)),
+            hjust = -0.15, size = 3, color = "#3A2A10") +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format(),
+                     expand = expansion(mult = c(0, 0.25))) +
+  labs(title = "Rata-rata revenue per pelanggan — 10 negara teratas",
+       subtitle = "Mengukur nilai ekonomi pelanggan per wilayah",
+       x = NULL, y = "Avg revenue per pelanggan (USD)",
+       caption = "Sumber: tabel country, customer, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank())
+```
+
+<div class="output-box">
+Urutan di grafik ini bisa berbeda dari urutan total revenue. Negara yang naik peringkat saat diukur per pelanggan adalah target pasar bernilai tinggi, meskipun total pelanggannya sedikit. Strategi retensi pelanggan akan lebih efektif jika difokuskan pada negara-negara di puncak daftar ini.
+</div>
+
+### Top 15 Kota Berdasarkan Revenue
+
+```{r viz3-kota, fig.height=6, fig.cap="Top 15 kota dengan revenue tertinggi"}
+ggplot(revenue_kota,
+    aes(x = reorder(city, total_revenue), y = total_revenue,
+        fill = jumlah_pelanggan)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0("$", format(total_revenue, big.mark=","))),
+            hjust = -0.1, size = 2.6, color = "#2A2A3E") +
+  coord_flip() +
+  scale_fill_gradient(low = "#C4D0E8", high = "#2A4A8A",
+                      name = "Jumlah\npelanggan") +
+  scale_y_continuous(labels = dollar_format(),
+                     expand = expansion(mult = c(0, 0.25))) +
+  labs(title = "Top 15 kota berdasarkan total revenue",
+       subtitle = "Warna batang menunjukkan jumlah pelanggan per kota",
+       x = NULL, y = "Total revenue (USD)",
+       caption = "Sumber: tabel city, customer, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank(),
+        legend.position = "right")
+```
+
+<div class="output-box">
+Gradasi warna membantu membedakan antara kota yang revenue-nya tinggi karena banyak pelanggan (biru tua) versus karena pelanggannya memiliki nilai transaksi tinggi (biru muda dengan batang panjang). Kota target prioritas adalah yang memiliki kombinasi optimal antara volume pelanggan dan nilai transaksi per pelanggan.
+</div>
+
+## Interpretasi
+
+<div class="interpret-box">
+Kesimpulan: Distribusi revenue antarwilayah menunjukkan ketidakmerataan yang signifikan — beberapa negara dan kota menyumbang porsi revenue yang jauh lebih besar. Perbandingan antara total revenue dan rata-rata revenue per pelanggan mengungkap bahwa <strong>nilai strategis suatu wilayah tidak selalu berbanding lurus dengan jumlah pelanggannya</strong>. Wilayah dengan RPC tinggi adalah target prioritas untuk program loyalitas dan upselling, karena pelanggan di sana sudah menunjukkan kecenderungan bertransaksi lebih banyak. Konsentrasi geografis ini juga berguna untuk perencanaan ekspansi wilayah dengan pelanggan sedikit namun RPC tinggi dapat menjadi pasar potensial jika penetrasi ditingkatkan.
+</div>
+
+---
+
+# Analisis 4 — Segmentasi Pelanggan RFM
+
+## Deskripsi
+
+<div class="info-box">
+Analisis keempat membangun model segmentasi RFM (Recency, Frequency, Monetary) untuk mengklasifikasikan pelanggan berdasarkan perilaku transaksi mereka.
+</div>
+
+## Konsep RFM
+
+<div class="eq-box">
+<strong>Tiga dimensi RFM:</strong>
+<ul>
+  <li><strong>Recency (R)</strong> — Seberapa baru pelanggan melakukan transaksi</li>
+  <li><strong>Frequency (F)</strong> — Seberapa sering pelanggan bertransaksi</li>
+  <li><strong>Monetary (M)</strong> — Seberapa besar total pengeluaran pelanggan</li>
+</ul>
+</div>
+
+## Persamaan Matematis
+
+$$
+R_i = \text{Max}(\text{tanggal\_referensi}) - \text{Max}(\text{tanggal\_transaksi}_i)
+$$
+
+$$
+F_i = \text{COUNT}(\text{rental\_id}_i) \quad \text{(total transaksi pelanggan } i\text{)}
+$$
+
+$$
+M_i = \sum_{j=1}^{n_i} p_{ij} \quad \text{(total pembayaran pelanggan } i\text{)}
+$$
+
+**Skoring RFM:** Setiap dimensi diberi skor 1–4 menggunakan kuartil. Skor R dibalik (recency rendah = skor tinggi). Skor RFM gabungan:
+
+$$
+\text{RFM\_Score}_i = \text{R\_Score}_i + \text{F\_Score}_i + \text{M\_Score}_i
+$$
+
+## Pengambilan Data dan Skoring
+
+```{r data-ana4}
+# Tanggal referensi = tanggal maksimum rental dalam dataset
+tanggal_ref <- dbGetQuery(con, "SELECT MAX(rental_date) AS maks FROM rental")$maks
+
+# Hitung RFM per pelanggan
+rfm_raw <- dbGetQuery(con, paste0("
+  SELECT
+    cu.customer_id,
+    CONCAT(cu.first_name, ' ', cu.last_name) AS nama,
+    DATEDIFF('", tanggal_ref, "', MAX(r.rental_date)) AS recency_hari,
+    COUNT(DISTINCT r.rental_id)               AS frequency,
+    ROUND(SUM(p.amount), 2)                   AS monetary
+  FROM customer cu
+  JOIN rental r  ON cu.customer_id = r.customer_id
+  JOIN payment p ON r.rental_id    = p.rental_id
+  GROUP BY cu.customer_id, nama
+"))
+
+# Skoring menggunakan kuartil (1–4)
+rfm_scored <- rfm_raw %>%
+  mutate(
+    R_score = ntile(-recency_hari, 4),  # recency rendah = skor tinggi
+    F_score = ntile(frequency, 4),
+    M_score = ntile(monetary, 4),
+    RFM_total = R_score + F_score + M_score,
+    Segmen = case_when(
+      RFM_total >= 10 ~ "Champions",
+      RFM_total >= 8  ~ "Loyal",
+      RFM_total >= 6  ~ "Potential",
+      RFM_total >= 4  ~ "At Risk",
+      TRUE            ~ "Lost"
+    ),
+    Segmen = factor(Segmen,
+      levels = c("Champions","Loyal","Potential","At Risk","Lost"))
+  )
+
+# Ringkasan per segmen
+segmen_ringkasan <- rfm_scored %>%
+  group_by(Segmen) %>%
+  summarise(
+    jumlah_pelanggan  = n(),
+    avg_recency       = round(mean(recency_hari), 0),
+    avg_frequency     = round(mean(frequency), 1),
+    avg_monetary      = round(mean(monetary), 2),
+    total_revenue     = round(sum(monetary), 2),
+    .groups = "drop"
+  )
+```
+
+## Statistik Ringkasan Segmen
+
+```{r tabel-segmen, echo=FALSE}
+kable(
+  segmen_ringkasan,
+  col.names = c("Segmen", "Jml Pelanggan", "Avg Recency (hari)",
+                "Avg Frequency", "Avg Monetary ($)", "Total Revenue ($)"),
+  caption = "Ringkasan karakteristik tiap segmen pelanggan RFM",
+  format.args = list(big.mark = ",")
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13) %>%
+  column_spec(6, bold = TRUE)
+```
+
+## Visualisasi
+
+### Distribusi Pelanggan per Segmen
+
+```{r viz4-segmen, fig.cap="Distribusi jumlah pelanggan per segmen RFM"}
+warna_segmen <- c(
+  "Champions" = "#2A5C3C",
+  "Loyal"     = "#5A8A6A",
+  "Potential" = "#9AB07A",
+  "At Risk"   = "#C8A84B",
+  "Lost"      = "#8A4A3A"
+)
+
+ggplot(segmen_ringkasan,
+    aes(x = Segmen, y = jumlah_pelanggan, fill = Segmen)) +
+  geom_col(width = 0.65, show.legend = FALSE) +
+  geom_text(aes(label = paste0(jumlah_pelanggan, "\npelanggan")),
+            vjust = -0.3, size = 3.2, lineheight = 0.85) +
+  scale_fill_manual(values = warna_segmen) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  labs(title = "Distribusi pelanggan berdasarkan segmen RFM",
+       subtitle = "Champions = pelanggan paling berharga | Lost = pelanggan tidak aktif",
+       x = "Segmen RFM", y = "Jumlah pelanggan",
+       caption = "Sumber: tabel customer, rental, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.x = element_blank())
+```
+
+<div class="output-box">
+Proporsi pelanggan di segmen Champions dan Loyal mencerminkan kualitas basis pelanggan bisnis. Jika segmen At Risk dan Lost mendominasi, perlu strategi win-back yang agresif. Idealnya, piramida pelanggan memiliki basis Potential yang besar yang dapat dinaikkan ke Loyal, dan Loyal yang aktif bertransisi ke Champions.
+</div>
+
+### Scatter Plot RFM — Frequency vs Monetary
+
+```{r viz4-scatter, fig.cap="Hubungan antara frekuensi rental dan total pengeluaran per segmen"}
+ggplot(rfm_scored,
+    aes(x = frequency, y = monetary, color = Segmen, size = RFM_total)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = warna_segmen) +
+  scale_size_continuous(range = c(1.5, 5)) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "Scatter plot RFM — Frequency vs Monetary per pelanggan",
+       subtitle = "Ukuran titik = skor RFM gabungan | Warna = segmen",
+       x = "Frequency (jumlah rental)", y = "Monetary (total pengeluaran USD)",
+       color = "Segmen", size = "Skor RFM",
+       caption = "Sumber: tabel customer, rental, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        legend.position = "right")
+```
+
+<div class="output-box">
+Titik-titik di kuadran kanan atas (frekuensi tinggi, pengeluaran tinggi) adalah pelanggan Champions. Pola cluster yang terlihat mengkonfirmasi validitas segmentasi pelanggan dengan skor berbeda memang mengelompok secara alami. Titik besar berwarna hijau tua di pojok kanan atas adalah kandidat VIP yang layak mendapat program loyalitas eksklusif.
+</div>
+
+### Revenue per Segmen
+
+```{r viz4-revenue, fig.cap="Kontribusi revenue total per segmen pelanggan"}
+ggplot(segmen_ringkasan,
+    aes(x = reorder(Segmen, total_revenue), y = total_revenue,
+        fill = Segmen)) +
+  geom_col(width = 0.65, show.legend = FALSE) +
+  geom_text(aes(label = paste0("$", format(total_revenue, big.mark=","))),
+            hjust = -0.1, size = 3, color = "#2C2C2E") +
+  coord_flip() +
+  scale_fill_manual(values = warna_segmen) +
+  scale_y_continuous(labels = dollar_format(),
+                     expand = expansion(mult = c(0, 0.25))) +
+  labs(title = "Kontribusi revenue per segmen pelanggan RFM",
+       subtitle = "Segmen mana yang paling bernilai secara finansial?",
+       x = NULL, y = "Total revenue (USD)",
+       caption = "Sumber: tabel customer, rental, payment — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank())
+```
+
+<div class="output-box">
+Grafik ini mengungkap seberapa besar kontribusi finansial tiap segmen. Jika segmen Loyal menyumbang revenue terbesar meski Champions lebih sedikit, berarti ada potensi besar untuk mengonversi lebih banyak pelanggan Loyal menjadi Champions melalui program engagement yang tepat.
+</div>
+
+## Interpretasi
+
+<div class="interpret-box">
+Kesimpulan: Segmentasi RFM berhasil membagi pelanggan ke dalam kelompok-kelompok yang memiliki profil transaksi berbeda secara signifikan. Pelanggan <strong>Champions</strong> menunjukkan recency terkini, frekuensi tertinggi, dan pengeluaran terbesar mereka adalah aset paling berharga yang harus dipertahankan dengan program loyalitas premium. Pelanggan <strong>At Risk</strong> memiliki riwayat transaksi baik namun sudah lama tidak aktif kelompok ini adalah prioritas win-back karena biaya akuisisi sudah terserap. Distribusi segmen memberikan gambaran kesehatan bisnis: semakin banyak pelanggan di segmen atas, semakin stabil basis revenue yang dimiliki.
+</div>
+
+---
+
+# Analisis 5 — Model Regresi Prediksi Revenue
+
+## Deskripsi
+
+<div class="info-box">
+Analisis terakhir berkaitan dengan model regresi linear berganda untuk memprediksi total pengeluaran pelanggan berdasarkan perilaku rental dan karakteristik film.
+</div>
+
+## Pengambilan Data
+
+```{r data-ana5}
+# Data fitur per pelanggan untuk regresi
+data_regresi <- dbGetQuery(con, "
+  SELECT
+    cu.customer_id,
+    COUNT(DISTINCT r.rental_id)          AS frequency,
+    ROUND(AVG(f.rental_rate), 2)         AS avg_rental_rate,
+    ROUND(AVG(f.durasi), 1)            AS avg_film_length,
+    ROUND(AVG(f.replacement_cost), 2)    AS avg_replacement_cost,
+    COUNT(DISTINCT f.rating)             AS keragaman_rating,
+    ROUND(SUM(p.amount), 2)              AS total_revenue
+  FROM customer cu
+  JOIN rental r      ON cu.customer_id  = r.customer_id
+  JOIN inventory inv ON r.inventory_id  = inv.inventory_id
+  JOIN film f        ON inv.film_id     = f.film_id
+  JOIN payment p     ON r.rental_id     = p.rental_id
+  GROUP BY cu.customer_id
+  HAVING COUNT(DISTINCT r.rental_id) >= 5
+")
+```
+
+## Persamaan Model Regresi
+
+<div class="eq-box">
+<strong>Model regresi linear berganda:</strong>
+</div>
+
+$$
+\hat{Y}_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{3i} + \beta_4 X_{4i} + \varepsilon_i
+$$
+
+dengan:
+
+- $\hat{Y}_i$ = prediksi total revenue pelanggan $i$
+- $X_1$ = frequency (jumlah rental)
+- $X_2$ = rata-rata rental rate film yang disewa
+- $X_3$ = rata-rata durasi film
+- $X_4$ = rata-rata replacement cost
+- $\beta_0$ = intercept model
+- $\varepsilon_i$ = error term (residual)
+
+## Pemodelan
+
+```{r model-ana5}
+# Fit model regresi
+model_rfm <- lm(
+  total_revenue ~ frequency + avg_rental_rate + avg_film_length + avg_replacement_cost,
+  data = data_regresi
+)
+
+# Ringkasan model
+ringkasan_model <- summary(model_rfm)
+
+# Ekstrak koefisien
+koef_df <- as.data.frame(coef(summary(model_rfm)))
+koef_df$Variabel <- rownames(koef_df)
+koef_df <- koef_df %>%
+  select(Variabel, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`) %>%
+  mutate(across(where(is.numeric), ~ round(., 4)))
+
+# Nilai diagnostik
+r_sq       <- round(ringkasan_model$r.squared, 4)
+adj_r_sq   <- round(ringkasan_model$adj.r.squared, 4)
+f_stat     <- round(ringkasan_model$fstatistic[1], 2)
+rmse_val   <- round(sqrt(mean(residuals(model_rfm)^2)), 2)
+
+# Prediksi vs aktual
+data_regresi <- data_regresi %>%
+  mutate(
+    prediksi  = round(fitted(model_rfm), 2),
+    residual  = round(residuals(model_rfm), 2)
+  )
+```
+
+## Diagnostik Model
+
+```{r stat-grid-ana5, echo=FALSE}
+data.frame(
+  Metrik = c("R² (koefisien determinasi)", "R² terkoreksi",
+             "F-statistic", "RMSE"),
+  Nilai  = c(
+    as.character(r_sq),
+    as.character(adj_r_sq),
+    as.character(f_stat),
+    paste0("$", rmse_val)
+  )
+) %>%
+  kable(col.names = c("Metrik Diagnostik", "Nilai"),
+        caption = "Ringkasan diagnostik model regresi") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE, font_size = 14) %>%
+  column_spec(1, bold = FALSE, width = "22em") %>%
+  column_spec(2, bold = TRUE, color = "#1C1C1E", width = "10em")
+```
+
+<div class="output-box">
+R² menunjukkan proporsi variabilitas revenue yang dapat dijelaskan model. Nilai mendekati 1 berarti model sangat akurat. RMSE (Root Mean Square Error) mengukur rata-rata kesalahan prediksi dalam satuan USD semakin kecil semakin baik. F-statistic yang besar dengan p-value kecil menunjukkan model secara keseluruhan signifikan secara statistik.
+</div>
+
+## Tabel Koefisien Regresi
+
+```{r tabel-koef, echo=FALSE}
+kable(
+  koef_df,
+  col.names = c("Variabel", "Estimasi (β)", "Std. Error", "t-value", "p-value"),
+  caption = "Koefisien model regresi linear berganda prediksi revenue"
+) %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                full_width = TRUE, font_size = 13) %>%
+  column_spec(2, bold = TRUE) %>%
+  column_spec(5, color = ifelse(koef_df$`Pr(>|t|)` < 0.05, "#2A5C3C", "#8A4A3A"))
+```
+
+<div class="output-box">
+Kolom "Estimasi (β)" menunjukkan seberapa besar kontribusi setiap variabel terhadap prediksi revenue. Nilai p &lt; 0.05 (ditampilkan hijau) menandakan variabel tersebut signifikan secara statistik. Variabel dengan nilai estimasi terbesar dan signifikan adalah prediktor revenue yang paling kuat.
+</div>
+
+## Visualisasi
+
+### Prediksi vs Aktual
+
+```{r viz5-pred-aktual, fig.cap="Perbandingan nilai prediksi model vs nilai aktual revenue"}
+ggplot(data_regresi, aes(x = prediksi, y = total_revenue)) +
+  geom_point(alpha = 0.5, color = "#5A7A9A", size = 1.8) +
+  geom_abline(slope = 1, intercept = 0,
+              color = "#8A4A3A", linetype = "dashed", linewidth = 1) +
+  geom_smooth(method = "lm", se = TRUE,
+              color = "#2A5C3C", linewidth = 0.9,
+              fill = "#9AB07A", alpha = 0.15) +
+  scale_x_continuous(labels = dollar_format()) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "Prediksi model vs nilai aktual revenue pelanggan",
+       subtitle = "Garis merah putus = prediksi sempurna (45°) | Garis hijau = garis regresi aktual",
+       x = "Revenue prediksi (USD)", y = "Revenue aktual (USD)",
+       caption = "Sumber: model regresi — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10))
+```
+
+<div class="output-box">
+Titik-titik yang berdekatan dengan garis merah putus (45°) menunjukkan prediksi yang akurat. Garis hijau adalah garis regresi aktual dari data ini jika sejajar dengan garis merah, model tidak memiliki bias sistematis. Titik-titik yang jauh dari kedua garis adalah outlier yang mungkin perlu penanganan khusus.
+</div>
+
+### Distribusi Residual
+
+```{r viz5-residual, fig.cap="Distribusi residual model regresi"}
+ggplot(data_regresi, aes(x = residual)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 30, fill = "#8A9A6A", color = "#F5F4F0",
+                 alpha = 0.85) +
+  geom_density(color = "#3A5A2A", linewidth = 1.1) +
+  geom_vline(xintercept = 0, color = "#8A4A3A",
+             linetype = "dashed", linewidth = 0.9) +
+  scale_x_continuous(labels = dollar_format()) +
+  labs(title = "Distribusi residual model regresi",
+       subtitle = "Residual ideal berdistribusi normal dan terpusat di nol",
+       x = "Residual (USD)", y = "Densitas",
+       caption = "Sumber: model regresi — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10))
+```
+
+<div class="output-box">
+ Distribusi residual yang berbentuk lonceng simetris dan terpusat di nol (garis merah putus) mengonfirmasi bahwa asumsi normalitas residual terpenuhi. Distribusi yang condong ke satu sisi mengindikasikan model mungkin underestimated atau overestimated secara sistematis pada kelompok pelanggan tertentu.
+</div>
+
+### Koefisien Regresi — Magnitude Efek
+
+```{r viz5-koef, fig.cap="Magnitude efek setiap prediktor dalam model regresi"}
+koef_plot <- koef_df %>%
+  filter(Variabel != "(Intercept)") %>%
+  mutate(
+    signifikan = ifelse(`Pr(>|t|)` < 0.05, "Signifikan (p < 0.05)", "Tidak signifikan"),
+    Variabel_label = recode(Variabel,
+      "frequency"            = "Frekuensi rental",
+      "avg_rental_rate"      = "Rata-rata rental rate",
+      "avg_film_length"      = "Rata-rata durasi film",
+      "avg_replacement_cost" = "Rata-rata replacement cost"
+    )
+  )
+
+ggplot(koef_plot,
+    aes(x = reorder(Variabel_label, abs(Estimate)),
+        y = Estimate, fill = signifikan)) +
+  geom_col(width = 0.6) +
+  geom_errorbar(aes(ymin = Estimate - 1.96 * `Std. Error`,
+                    ymax = Estimate + 1.96 * `Std. Error`),
+                width = 0.25, color = "#2C2C2E") +
+  coord_flip() +
+  scale_fill_manual(values = c("Signifikan (p < 0.05)" = "#2A5C3C",
+                               "Tidak signifikan"       = "#C8A84B")) +
+  labs(title = "Koefisien regresi — magnitude dan signifikansi",
+       subtitle = "Error bar = interval kepercayaan 95% | Hijau = signifikan secara statistik",
+       x = NULL, y = "Estimasi koefisien β",
+       fill = "Signifikansi statistik",
+       caption = "Sumber: model regresi — Sakila DB") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "gray50", size = 10),
+        panel.grid.major.y = element_blank(),
+        legend.position = "bottom")
+```
+
+<div class="output-box">
+Batang hijau menunjukkan prediktor yang signifikan secara statistik. Error bar menggambarkan ketidakpastian estimasi error bar yang tidak melewati garis nol menandakan koefisien reliabel. Prediktor dengan koefisien positif besar berarti peningkatan variabel tersebut berkorelasi kuat dengan kenaikan revenue.
+</div>
+
+## Interpretasi
+
+<div class="interpret-box">
+Kesimpulan: Model regresi linear berganda mampu menangkap hubungan antara perilaku rental dan total revenue pelanggan dengan tingkat akurasi yang terukur melalui R² dan RMSE. Variabel <strong>frequency</strong> (jumlah rental) secara konsisten menjadi prediktor terkuat setiap tambahan transaksi rental langsung meningkatkan total revenue. Variabel harga sewa rata-rata dan replacement cost berkontribusi melalui nilai transaksi, bukan volume. Implikasi manajerial: strategi meningkatkan frekuensi kunjungan pelanggan (melalui promosi, program member, atau event) akan memberikan dampak revenue paling signifikan dibandingkan hanya menaikkan harga sewa.
+</div>
+
+---
+
+# Penutup dan Rekomendasi
+
+<div class="summary-box">
+<strong>Ringkasan temuan lintas analisis:</strong>
+
+<br>
+
+**Analisis 1:** Distribusi genre merata menunjukkan keragaman pilihan. Revenue per genre relatif setara, mengindikasikan penetapan harga seragam. Film terpopuler tidak terkonsentrasi pada satu genre selera pelanggan beragam.
+
+<br>
+
+**Analisis 2:** Terdapat pola musiman yang jelas dalam aktivitas rental. Hari-hari tertentu dalam seminggu secara konsisten lebih sibuk. Variasi bulanan dapat dimanfaatkan untuk perencanaan promosi berbasis musim.
+
+<br>
+
+**Analisis 3:** Revenue tidak merata antarwilayah. Beberapa negara memiliki RPC (revenue per customer) tinggi meski jumlah pelanggannya sedikit ini adalah pasar bernilai tinggi untuk ekspansi.
+
+<br>
+
+**Analisis 4:** Pelanggan Champions perlu dipertahankan dengan program loyalitas. Pelanggan At Risk yang punya riwayat baik adalah prioritas win-back. Basis pelanggan Potential adalah sumber pertumbuhan organik jangka panjang.
+
+<br>
+
+**Analisis 5:** Frekuensi rental adalah prediktor revenue paling kuat. Strategi mendorong frekuensi kunjungan (bukan hanya kenaikan harga) akan menghasilkan dampak revenue lebih besar dan berkelanjutan.
+</div>
+
+<div class="interpret-box">
+<strong>Rekomendasi strategis:</strong><br><br>
+1. <strong>Program loyalitas bertingkat</strong>:Desain program yang memotivasi segmen Potential dan Loyal untuk meningkatkan frekuensi rental, dengan reward yang eskalatif menuju tier Champions.<br><br>
+2. <strong>Manajemen inventaris berbasis musim</strong>:Tambah stok salinan film pada bulan-bulan puncak dan genre populer; optimalkan penggunaan kapasitas pada periode sepi melalui promosi harga.<br><br>
+3. <strong>Ekspansi pasar geografis tertarget</strong>: Memfokuskan upaya akuisisi pelanggan baru pada negara/kota dengan RPC tinggi yang masih memiliki penetrasi rendah.<br><br>
+4. <strong>Kampanye win-back</strong>: Identifikasi pelanggan At Risk dan Lost dengan riwayat transaksi signifikan dapat dilakukan penawaran insentif personal berbasis preferensi genre mereka.
+</div>
+
+```{r disconnect, include=FALSE}
+dbDisconnect(con)
+```
+
+---
+
+<div class="output-box" style="text-align: center; font-size: 13px; color: #6E6E73;">
+Laporan dibuat menggunakan R Markdown dengan koneksi database MySQL (Sakila DB)
+</div>
